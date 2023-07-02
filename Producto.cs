@@ -1,6 +1,7 @@
-﻿using Repository;
+using System.Data.SqlClient;
+using System.Collections.Generic;
 
-namespace Repositty
+namespace Repositty1.Controllers
 {
     public class Producto
     {
@@ -10,38 +11,45 @@ namespace Repositty
         public decimal PrecioVenta { get; set; }
         public int Stock { get; set; }
         public long IdUsuario { get; set; }
-    }
 
-    public class ProductoDAO
-    {
-        public List<Producto> TraerProductos()
+        public void InsertarProducto()
         {
-            List<Producto> productos = new List<Producto>();
-            using (NpgsqlConnection con = Conecion.GetConnection())
+            using (SqlConnection connection = DBHelper.GetConnection())
             {
-                con.Open();
-                string query = "SELECT * FROM Producto";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, con))
+                try
                 {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
-                        while (reader.Read())
+                        con.Open();
+                        string query = "SELECT * FROM Producto";
+                        using (SqlCommand cmd = new SqlCommand(query, con))
                         {
-                            Producto producto = new Producto
+                            using (SqlDataReader reader = cmd.ExecuteReader())
                             {
-                                Id = Convert.ToInt64(reader["Id"]),
-                                Descripciones = reader["Descripciones"].ToString(),
-                                Costo = reader["Costo"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["Costo"]),
-                                PrecioVenta = Convert.ToDecimal(reader["PrecioVenta"]),
-                                Stock = Convert.ToInt32(reader["Stock"]),
-                                IdUsuario = Convert.ToInt64(reader["IdUsuario"])
-                            };
-                            productos.Add(producto);
+                                while (reader.Read())
+                                {
+                                    Producto producto = new Producto
+                                    {
+                                        Id = Convert.ToInt64(reader["Id"]),
+                                        Descripciones = reader["Descripciones"].ToString(),
+                                        Costo = reader["Costo"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["Costo"]),
+                                        PrecioVenta = Convert.ToDecimal(reader["PrecioVenta"]),
+                                        Stock = Convert.ToInt32(reader["Stock"]),
+                                        IdUsuario = Convert.ToInt64(reader["IdUsuario"])
+                                    };
+                                    productos.Add(producto);
+                                }
+                            }
                         }
                     }
+                    return productos;
+
+                    connection.Close();
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
                 }
             }
-            return productos;
         }
     }
 }
