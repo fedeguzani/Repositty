@@ -1,10 +1,9 @@
-﻿
+
+using System.Data.SqlClient;
+using System.Collections.Generic;
 
 
-using Repository;
-
-namespace Repositty
-
+namespace Repositty1.Controllers
 {
     public class Usuario
     {
@@ -14,39 +13,42 @@ namespace Repositty
         public string? NombreUsuario { get; set; }
         public string? Contraseña { get; set; }
         public string? Mail { get; set; }
-    }
 
-    public class UsuarioDAO
-    {
-        public Usuario TraerUsuarioPorNombreUsuario(string nombreUsuario)
+        public void InsertarUsuario()
         {
-            Usuario? usuario = null;
-            using (NpgsqlConnection con = Conecion.GetConnection())
+            using (SqlConnection connection = DBHelper.GetConnection())
             {
-                con.Open();
-                string query = "SELECT * FROM Usuario WHERE NombreUsuario = @nombreUsuario";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, con))
+                try
                 {
-                    cmd.Parameters.AddWithValue("nombreUsuario", nombreUsuario);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    connection.Open();
+                    string query = "SELECT * FROM Usuario WHERE NombreUsuario = @nombreUsuario";
+                    using (SqlCommand cmd = new SqlCommand(query, con))
                     {
-                        if (reader.Read())
+                        cmd.Parameters.AddWithValue("nombreUsuario", nombreUsuario);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            usuario = new Usuario
+                            if (reader.Read())
                             {
-                                Id = Convert.ToInt64(reader["Id"]),
-                                Nombre = reader["Nombre"].ToString(),
-                                Apellido = reader["Apellido"].ToString(),
-                                NombreUsuario = reader["NombreUsuario"].ToString(),
-                                Contraseña = reader["Contraseña"].ToString(),
-                                Mail = reader["Mail"].ToString()
-                            };
+                                usuario = new Usuario
+                                {
+                                    Id = Convert.ToInt64(reader["Id"]),
+                                    Nombre = reader["Nombre"].ToString(),
+                                    Apellido = reader["Apellido"].ToString(),
+                                    NombreUsuario = reader["NombreUsuario"].ToString(),
+                                    Contraseña = reader["Contraseña"].ToString(),
+                                    Mail = reader["Mail"].ToString()
+                                };
+                            }
                         }
                     }
+
+                    connection.Close();
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
                 }
             }
-            return usuario;
         }
     }
-
 }
