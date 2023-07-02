@@ -1,40 +1,62 @@
-﻿using Repository;
+using System.Data.SqlClient;
+using System.Collections.Generic;
 
-namespace Repositty
+
+namespace Repositty1.Controllers
 {
     public class Venta
     {
         public long Id { get; set; }
-        public string? Comentarios { get; set; }
-    }
+        public DateTime Fecha { get; set; }
+        public decimal Total { get; set; }
+        public long IdUsuario { get; set; }
 
-    public class VentaDAO
-    {
-        public List<Venta> TraerVentas()
+        public void InsertarVenta()
         {
-            List<Venta> ventas = new List<Venta>();
-            using (NpgsqlConnection con = Conecion.GetConnection())
+            using (SqlConnection connection = DBHelper.GetConnection())
             {
-                con.Open();
-                string query = "SELECT * FROM Venta";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, con))
+                try
                 {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    connection.Open();
+
+                    // Realizar operaciones de inserción en la base de datos
+                    // ...
+
+                    connection.Close();
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+        }
+        public class VentaDAO
+        {
+            public List<Venta> TraerVentas()
+            {
+                List<Venta> ventas = new List<Venta>();
+                using (SqlConnection con = Conecion.GetConnection())
+                {
+                    con.Open();
+                    string query = "SELECT * FROM Venta";
+                    using (SqlCommand cmd = new SqlCommand(query, con))
                     {
-                        while (reader.Read())
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            Venta venta = new Venta
+                            while (reader.Read())
                             {
-                                Id = Convert.ToInt64(reader["Id"]),
-                                Comentarios = reader["Comentarios"].ToString()
-                            };
-                            ventas.Add(venta);
+                                Venta venta = new Venta
+                                {
+                                    Id = Convert.ToInt64(reader["Id"]),
+                                    Comentarios = reader["Comentarios"].ToString()
+                                };
+                                ventas.Add(venta);
+                            }
                         }
                     }
                 }
+                return ventas;
             }
-            return ventas;
         }
     }
-
 }
